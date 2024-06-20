@@ -33,8 +33,12 @@ class Book:
         file = open(path,encoding="utf8")
         lines = file.readlines()
         
-        self.text = lines[::2]
-
+        self.text = np.array(lines[::2])
+        
+        self.lengths = np.zeros((len(self.text),1))
+        
+        for i,line in enumerate(self.text):
+            self.lengths[i] = len(line.split())
 
     # class for scrollable label
 class ScrollLabel(QtWidgets.QScrollArea):
@@ -173,6 +177,7 @@ class MainWindow(QMainWindow):
         
         self.raw_text_index = 0
         self.raw_text = []
+        self.score_map = {}
         
         main = QWidget()
         
@@ -215,10 +220,19 @@ class MainWindow(QMainWindow):
         y_axis = []
         average_score = 0
         for line in self.raw_text:
-            value = self.model.process(line)
+            if line in self.score_map:
+                value = self.score_map[line]
+            else:
+                value = self.model.process(line)
+                self.score_map[line] = value
+                
             y_axis.append(value)
             average_score += value
-        average_score /= len(self.raw_text)
+            
+        if len(self.raw_text) != 0:
+            average_score /= len(self.raw_text)
+        else:
+            average_score = ''
     
         self.score_label.setText("Average Score for Book: {}".format(average_score))
         
@@ -276,14 +290,13 @@ class MainWindow(QMainWindow):
         if self.book == None:
             return
         
-        self.raw_text = []
-        for line in self.book.text:
-            if len(line.split()) >= self.min_amount:
-                self.raw_text.append(line)
-        
-        text = ""
-        for item in self.raw_text:
-            text = text + item + "\n"
+        # self.raw_text = []
+        # for line in self.book.text:
+        #     if len(line.split()) >= self.min_amount:
+        #         self.raw_text.append(line)
+                
+        indicies = np.where(self.book.lengths >= self.min_amount)
+        self.raw_text = self.book.text[indicies[0]]
         
         self.updateTextBar()
         self.updatePlot()
