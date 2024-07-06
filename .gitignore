@@ -1,0 +1,32 @@
+# Ignore all .txt files
+*.txt
+
+# Ignore all .pt model files
+*.pt
+
+# Ignore TensorBoard log files and directories
+logs/
+events.out.tfevents.*
+
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Ignore environment files
+.env
+.venv/
+env/
+venv/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
