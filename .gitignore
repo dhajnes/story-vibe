@@ -8,6 +8,7 @@
 logs/
 output/
 events.out.tfevents.*
+random_stuff/
 
 # Ignore Python bytecode
 __pycache__/
