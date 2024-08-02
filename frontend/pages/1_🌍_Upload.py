@@ -1,6 +1,8 @@
 import streamlit as st
 import numpy as np
 import time
+import re
+
 
 st.markdown("""
 <style>
@@ -35,39 +37,45 @@ with st.container(border=True):
             st.text(text_input[0:200] + "\n.\n.\n.")
         else:
             st.text(text_input)
+    
+if text_input:
+    st.session_state['text_input'] = text_input
         
+    paragraphs = re.split('\n\n|\r\n', text_input)
+    st.session_state['paragraphs'] = paragraphs
 
 col1, col2 = st.columns([4,1],vertical_alignment='center')
 
 with col1:
     st.markdown("<p> Choose Supported Sentiments:</p>", unsafe_allow_html=True)
 
-    neutral = st.checkbox('Neutral (mandatory)', value=True, disabled=True)
-    sadness = st.checkbox('Sadness')
-    happiness = st.checkbox('Happiness')
-    fear = st.checkbox('Fear')
-    disgust = st.checkbox('Disgust')
-    surprise = st.checkbox('Surprise')
-    anger = st.checkbox('Anger')
-    
-    # Collect selected sentiments
-    selected_sentiments = ['Neutral']
-    if sadness:
-        selected_sentiments.append('Sadness')
-    if happiness:
-        selected_sentiments.append('Happiness')
-    if fear:
-        selected_sentiments.append('Fear')
-    if disgust:
-        selected_sentiments.append('Disgust')
-    if surprise:
-        selected_sentiments.append('Surprise')
-    if anger:
-        selected_sentiments.append('Anger')
+    if 'sentiments' not in st.session_state:
+        st.session_state.sentiments = {
+            'Neutral': True,
+            'Sadness': False,
+            'Happiness': False,
+            'Fear': False,
+            'Disgust': False,
+            'Surprise': False,
+            'Anger': False
+        }
+
+    # Display checkboxes and update session state
+    st.session_state.sentiments['Neutral'] = st.checkbox('Neutral (mandatory)', value=True, disabled=True)
+    st.session_state.sentiments['Sadness'] = st.checkbox('Sadness', value=st.session_state.sentiments['Sadness'])
+    st.session_state.sentiments['Happiness'] = st.checkbox('Happiness', value=st.session_state.sentiments['Happiness'])
+    st.session_state.sentiments['Fear'] = st.checkbox('Fear', value=st.session_state.sentiments['Fear'])
+    st.session_state.sentiments['Disgust'] = st.checkbox('Disgust', value=st.session_state.sentiments['Disgust'])
+    st.session_state.sentiments['Surprise'] = st.checkbox('Surprise', value=st.session_state.sentiments['Surprise'])
+    st.session_state.sentiments['Anger'] = st.checkbox('Anger', value=st.session_state.sentiments['Anger'])
 
     # Display the selected sentiments
     st.write("Selected Sentiments:")
-    st.text(", ".join(selected_sentiments) if len(selected_sentiments) > 1 else "None")
+    display_text = "Neutral"
+    for sent, active in st.session_state.sentiments.items():
+        if active and sent!='Neutral':
+            display_text += ", {}".format(sent)
+    st.text(display_text)
     
 with col2:
     st.button("Analyse!") #Start analysing input or uploaded text
