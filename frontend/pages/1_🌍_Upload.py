@@ -14,36 +14,60 @@ st.markdown("""
 
 st.markdown("<p class=title> Upload Story</p>", unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([8,1,3], vertical_alignment="center")
+with st.container(border=True):
+    text_input = st.text_area("Temp",label_visibility ="collapsed",placeholder="Start writing...", height=200)
+    
+    if text_input:
+        st.write("Input Processed")
+    
+st.markdown("<p> Or </p>", unsafe_allow_html=True)
+    
+with st.container(border=True):
+    uploaded_file = st.file_uploader("Upload a .txt file", type="txt")
 
-with col1:
-    with st.container(border=True, height=250):
-        st.markdown("<p> Start writing...</p>", unsafe_allow_html=True)
+    if uploaded_file is not None:
+        # To read file as string:
+        text_input = uploaded_file.read().decode("utf-8")
         
-with col2:
-    st.markdown("<p> Or </p>", unsafe_allow_html=True)
+        st.write("File content:")
         
-with col3:
-    with st.container(border=True):
-        col31, col32 = st.columns(2)
+        if len(text_input) > 500:
+            st.text(text_input[0:200] + "\n.\n.\n.")
+        else:
+            st.text(text_input)
         
-        with col31:
-            st.image('test.jpg')
-        
-        with col32:
-            st.markdown("<p> Upload a .txt file</p>", unsafe_allow_html=True)
 
 col1, col2 = st.columns([4,1],vertical_alignment='center')
+
 with col1:
     st.markdown("<p> Choose Supported Sentiments:</p>", unsafe_allow_html=True)
 
-    option_s = st.checkbox('Neutral (mandatory)')
-    option_u = st.checkbox('Sadness')
-    option_v = st.checkbox('Happiness')
-    option_v = st.checkbox('Fear')
-    option_a = st.checkbox('Disgust')
-    option_a = st.checkbox('Surprise')
-    option_a = st.checkbox('Anger')
+    neutral = st.checkbox('Neutral (mandatory)', value=True, disabled=True)
+    sadness = st.checkbox('Sadness')
+    happiness = st.checkbox('Happiness')
+    fear = st.checkbox('Fear')
+    disgust = st.checkbox('Disgust')
+    surprise = st.checkbox('Surprise')
+    anger = st.checkbox('Anger')
+    
+    # Collect selected sentiments
+    selected_sentiments = ['Neutral']
+    if sadness:
+        selected_sentiments.append('Sadness')
+    if happiness:
+        selected_sentiments.append('Happiness')
+    if fear:
+        selected_sentiments.append('Fear')
+    if disgust:
+        selected_sentiments.append('Disgust')
+    if surprise:
+        selected_sentiments.append('Surprise')
+    if anger:
+        selected_sentiments.append('Anger')
+
+    # Display the selected sentiments
+    st.write("Selected Sentiments:")
+    st.text(", ".join(selected_sentiments) if len(selected_sentiments) > 1 else "None")
     
 with col2:
-    st.button("Analyse!")
+    st.button("Analyse!") #Start analysing input or uploaded text
