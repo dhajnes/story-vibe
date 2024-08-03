@@ -1,17 +1,8 @@
 import streamlit as st
 import time
 
-st.markdown("""
-<style>
-.title {
-    font-size:40px;
-    font-weight:bold;
-    
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("<p class=title> Analyse Text</p>", unsafe_allow_html=True)
+st.logo("test.jpg")
+st.title("Analyse Text")
 
 with st.empty():
     progress_text = "Analyzing... Please wait."

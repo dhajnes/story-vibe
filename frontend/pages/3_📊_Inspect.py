@@ -7,17 +7,10 @@ import pandas as pd
 import numpy as np
 
 
-st.markdown("""
-<style>
-.title {
-    font-size:40px;
-    font-weight:bold;
-    
-}
-</style>
-""", unsafe_allow_html=True)
+st.logo("test.jpg")
 
-st.markdown("<p class=title> Inspect Story</p>", unsafe_allow_html=True)
+
+st.title("Inspect Story")
 
 col1, col2 = st.columns(2)
 
@@ -90,7 +83,7 @@ with col1:
             traces = []
             
             for i in range(nr_of_sents):
-                y = np.random.randn(100)/2
+                y = np.random.randn(100)
                 traces.append(
                     go.Scatter(
                             x=x, y=y,

@@ -3,18 +3,8 @@ import numpy as np
 import time
 import re
 
-
-st.markdown("""
-<style>
-.title {
-    font-size:40px;
-    font-weight:bold;
-    
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("<p class=title> Upload Story</p>", unsafe_allow_html=True)
+st.logo("test.jpg")
+st.title("Upload Story")
 
 with st.container(border=True):
     text_input = st.text_area("Temp",label_visibility ="collapsed",placeholder="Start writing...", height=200)
