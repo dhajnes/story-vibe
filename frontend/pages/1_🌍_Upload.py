@@ -42,6 +42,7 @@ if text_input:
     st.session_state['text_input'] = text_input
         
     paragraphs = re.split('\n\n|\r\n', text_input)
+    paragraphs = [i for i in paragraphs if len(i)>1]
     st.session_state['paragraphs'] = paragraphs
 
 col1, col2 = st.columns([4,1],vertical_alignment='center')
