@@ -61,6 +61,7 @@ with col1:
     st.session_state.sentiments['Anger'] = st.checkbox('Anger', value=st.session_state.sentiments['Anger'])
 
     # Display the selected sentiments
+    st.divider()
     st.write("Selected Sentiments:")
     display_text = "Neutral"
     for sent, active in st.session_state.sentiments.items():
@@ -70,3 +71,5 @@ with col1:
     
 with col2:
     st.button("Analyse!") #Start analysing input or uploaded text
+    
+st.divider()
