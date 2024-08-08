@@ -9,9 +9,6 @@ import numpy as np
 st.logo("test.jpg")
 st.title("Inspect Story")
 
-##Init base session_state variables
-if 'slider_value' not in st.session_state:
-    st.session_state['slider_value'] = 0
 
 ##Markdown styles
 st.markdown(
@@ -21,13 +18,16 @@ st.markdown(
         width: 85%;  /* Adjust this value to change the slider width */
         margin: auto;  /* Center the slider */
     }
+    .stIndex > div {
+        margin: auto;  /* Center the slider */
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
     
-col1, col2 = st.columns([3,2])
+col1, col2 = st.columns([3,2], vertical_alignment='center')
 
 with col1:
     st.subheader("Segment Slider:")
@@ -37,7 +37,7 @@ with col1:
          
             trace =  go.Scatter(
                 x=np.arange(len(paragraphs)),
-                y=[len(p) for p in paragraphs],
+                y=[len(p.split()) for p in paragraphs],
                
                 mode='lines+markers',
                 marker=dict( 
@@ -66,7 +66,11 @@ with col1:
                     st.session_state['slider_value'] = para_id
                     st.session_state["text_input"] = st.session_state["paragraphs"][para_id]
                 
-            fig.add_vline(x=st.session_state['slider_value'],line_color="purple")
+            if 'slider_value' in st.session_state:
+                x=st.session_state['slider_value']
+            else:
+                x = 0
+            fig.add_vline(x=x,line_color="purple")
             
             st.plotly_chart(fig, on_select=callback, key="chosen_para",
                             use_container_width=True, config=config)    
@@ -76,42 +80,52 @@ with col1:
             st.line_chart()
         
 with col2:
-    st.subheader("Inputted text:")
+    st.subheader("Inputted Text:")
     with st.container(border=True, height=400):
         
-        if 'text_input' in st.session_state:
-            #paragraphs = st.session_state['paragraphs']
-            text = st.session_state["text_input"]
-            st.write(text)
+        if 'paragraphs' in st.session_state:
+            if 'slider_value' in st.session_state:
+                st.write(st.session_state["paragraphs"][st.session_state['slider_value']])
+            else:
+                st.write(st.session_state["paragraphs"][0])
+                
+        elif 'text_input' in st.session_state:               
+            st.write(st.session_state["text_input"])
         else:
             st.text("Lorem Impsum Dolor Sit Amets ...")
+    
+    if 'slider_value' in st.session_state:
+        st.markdown("Segment {}/{}".format(st.session_state['slider_value'],len(st.session_state["paragraphs"])))
+    else:
+        st.markdown("Segment {}/{}".format(0,len(st.session_state["paragraphs"])))
 
 with col1:
-        if 'paragraphs' in st.session_state:
-            def slider_update():
-                if st.session_state['slider_value'] >= 0 and len(st.session_state["paragraphs"])>0:
-                    paragraphs = st.session_state["paragraphs"]
-                    st.session_state["text_input"] = paragraphs[st.session_state['slider_value']]
+    if 'paragraphs' in st.session_state:
+        def slider_update():
+            if st.session_state['slider_value'] >= 0 and len(st.session_state["paragraphs"])>0:
+                paragraphs = st.session_state["paragraphs"]
+                st.session_state["text_input"] = paragraphs[st.session_state['slider_value']]
+        
             
-                
-            selected_value = st.slider(
-                label="Select paragraph",
-                min_value=[-1 if  len(st.session_state['paragraphs'])==0 else 0][0],  # Minimum value of the slider
-                max_value= len(st.session_state['paragraphs'])-1,  # Maximum value of the slider
-                value=st.session_state['slider_value'],  # Default value (optional)
-                key='slider_value',
-                on_change=slider_update
-            )
-        else:
-            st.slider(label="Select paragraph",
-                min_value=0,  # Minimum value of the slider
-                max_value=1  # Maximum value of the slider
-            )
+        selected_value = st.slider(
+            label="Select Paragraph:",
+            min_value=[-1 if  len(st.session_state['paragraphs'])==0 else 0][0],  # Minimum value of the slider
+            max_value= len(st.session_state['paragraphs'])-1,  # Maximum value of the slider
+            value=0,  # Default value (optional)
+            key='slider_value',
+            on_change=slider_update
+        )
+    else:
+        st.slider(label="Select paragraph",
+            min_value=0,  # Minimum value of the slider
+            max_value=1  # Maximum value of the slider
+        )
 
-col1, col2 = st.columns([3,2])
+col1, col2 = st.columns([3,2],vertical_alignment='center')
 
 with col1:
     with st.container(border=True):
+        st.toggle("Bert",key="toggle_value")
         
         if 'sentiments' in st.session_state:
             sents = st.session_state.sentiments
@@ -136,15 +150,27 @@ with col1:
                 clickmode='event+select'
             )
             
-            for i in range(nr_of_sents):
-                y = np.random.randn(nr_of_para)
+            
+            if not st.session_state['toggle_value']:
+                       
+                for i in range(nr_of_sents):
+                    y = np.random.randn(nr_of_para)
+                    traces.append(
+                        go.Scatter(
+                                x=x, y=y,
+                                mode='lines+markers',
+                                name=categories[i]
+                            )
+                        )
+            else:
+                y = st.session_state['scores']
                 traces.append(
                     go.Scatter(
                             x=x, y=y,
-                            mode='lines+markers',
-                            name=categories[i]
+                            mode='lines+markers'
                         )
                     )
+                
             # Create the figure
             fig = go.Figure(data=traces, layout=layout)
             fig.update_layout(legend=dict(
