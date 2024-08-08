@@ -9,13 +9,17 @@ import numpy as np
 st.logo("test.jpg")
 st.title("Inspect Story")
 
+if 'slider_value' not in st.session_state:
+    st.session_state['slider_value'] = 0
+if 'paragraphs' not in st.session_state:
+    st.session_state['paragraphs'] = []
 
 ##Markdown styles
 st.markdown(
     """
     <style>
     .stSlider > div {
-        width: 85%;  /* Adjust this value to change the slider width */
+        width: 95%;  /* Adjust this value to change the slider width */
         margin: auto;  /* Center the slider */
     }
     .stIndex > div {
@@ -39,7 +43,7 @@ with col1:
                 x=np.arange(len(paragraphs)),
                 y=[len(p.split()) for p in paragraphs],
                
-                mode='lines+markers',
+                mode='lines',
                 marker=dict( 
                     size=10, )
                 ,
@@ -53,7 +57,7 @@ with col1:
             
             config = {'displayModeBar': False}
             
-            fig = go.Figure(data=[trace],)          
+            fig = go.Figure(data=[trace])          
             
             fig.update_layout(showlegend=False)
             fig.update_xaxes(visible=True)
@@ -70,7 +74,7 @@ with col1:
                 x=st.session_state['slider_value']
             else:
                 x = 0
-            fig.add_vline(x=x,line_color="purple")
+            fig.add_vline(x=x,line_width=3,line_color="purple")
             
             st.plotly_chart(fig, on_select=callback, key="chosen_para",
                             use_container_width=True, config=config)    
@@ -80,10 +84,10 @@ with col1:
             st.line_chart()
         
 with col2:
-    st.subheader("Inputted Text:")
+    st.subheader("Selected Text:")
     with st.container(border=True, height=400):
         
-        if 'paragraphs' in st.session_state:
+        if 'paragraphs' in st.session_state and len(paragraphs)>0:
             if 'slider_value' in st.session_state:
                 st.write(st.session_state["paragraphs"][st.session_state['slider_value']])
             else:
@@ -95,26 +99,51 @@ with col2:
             st.text("Lorem Impsum Dolor Sit Amets ...")
     
     if 'slider_value' in st.session_state:
-        st.markdown("Segment {}/{}".format(st.session_state['slider_value'],len(st.session_state["paragraphs"])))
+        st.write("Segment {}/{}".format(st.session_state['slider_value'],len(st.session_state["paragraphs"])))
+    
+        if 'scores' in st.session_state:
+            st.write("Bert Sentiment Score: {}".format(st.session_state['scores'][st.session_state['slider_value']]))
     else:
-        st.markdown("Segment {}/{}".format(0,len(st.session_state["paragraphs"])))
+        st.write("Segment {}/{}".format(0,len(st.session_state["paragraphs"])))
+    
+        if 'scores' in st.session_state:
+            st.write("Bert Sentiment Score: {}".format(st.session_state['scores'][0]))
 
 with col1:
+    col11, col12 = st.columns([9,1])
     if 'paragraphs' in st.session_state:
         def slider_update():
+            st.session_state['input_value'] = st.session_state['slider_value'] 
             if st.session_state['slider_value'] >= 0 and len(st.session_state["paragraphs"])>0:
                 paragraphs = st.session_state["paragraphs"]
                 st.session_state["text_input"] = paragraphs[st.session_state['slider_value']]
         
-            
-        selected_value = st.slider(
-            label="Select Paragraph:",
-            min_value=[-1 if  len(st.session_state['paragraphs'])==0 else 0][0],  # Minimum value of the slider
-            max_value= len(st.session_state['paragraphs'])-1,  # Maximum value of the slider
-            value=0,  # Default value (optional)
-            key='slider_value',
-            on_change=slider_update
-        )
+        def input_update():
+            st.session_state['slider_value'] = st.session_state['input_value']
+            if st.session_state['slider_value'] >= 0 and len(st.session_state["paragraphs"])>0:
+                paragraphs = st.session_state["paragraphs"]
+                st.session_state["text_input"] = paragraphs[st.session_state['slider_value']]
+        
+        with col11:
+            selected_value = st.slider(
+                label="Select Segment:",
+                min_value=0,  # Minimum value of the slider
+                max_value= max(len(st.session_state['paragraphs'])-1,1),  # Maximum value of the slider
+                value=st.session_state['slider_value'],  # Default value (optional)
+                key='slider_value',
+                on_change=slider_update
+            )
+        
+        with col12:
+            st.number_input(
+                label="temp",
+                label_visibility = 'hidden',
+                min_value=0,  # Minimum value of the slider
+                max_value= max(len(st.session_state['paragraphs'])-1,1),  # Maximum value of the slider
+                value=st.session_state['slider_value'],
+                key='input_value',
+                on_change=input_update
+            )
     else:
         st.slider(label="Select paragraph",
             min_value=0,  # Minimum value of the slider
@@ -158,7 +187,7 @@ with col1:
                     traces.append(
                         go.Scatter(
                                 x=x, y=y,
-                                mode='lines+markers',
+                                mode='lines',
                                 name=categories[i]
                             )
                         )
@@ -167,7 +196,7 @@ with col1:
                 traces.append(
                     go.Scatter(
                             x=x, y=y,
-                            mode='lines+markers'
+                            mode='lines'
                         )
                     )
                 
@@ -181,7 +210,7 @@ with col1:
                 x=1
             ))
             
-            fig.add_vline(x=st.session_state['slider_value'],line_color="purple")
+            fig.add_vline(x=st.session_state['slider_value'],line_width=3,line_color="purple")
             st.plotly_chart(fig)
             
         else:
@@ -206,6 +235,10 @@ with col2:
             # Create a radar chart
             fig = px.line_polar(df, r='value', theta='category', 
                                 line_close=True)
+            
+            fig.update_layout(
+                margin=dict(l=50, r=50, t=20, b=20)
+            )
             fig.update_traces(fill='toself')
             
             # Display the radar chart in Streamlit

@@ -13,9 +13,19 @@ model = AutoModelForSequenceClassification.from_pretrained('nlptown/bert-base-mu
 with st.container():
     st.write("Select analyzing granulity:")
     
-    st.checkbox("Seperate by paragraphs",value=True,key="use_para")
-    
-    st.number_input("Set minimum word count:", key="min_size",value=10, step=1, min_value = 0)
+    with st.container(border=True):
+        st.checkbox("Seperate by paragraphs",value=True,key="use_para")
+        
+        if not st.session_state['use_para']:
+            st.number_input("Seperate every x word:", key="min_size",value=10, step=1, min_value = 0, disabled=True)
+        else:
+            st.number_input("Set minimum word count:", key="min_size",value=10, step=1, min_value = 0)
+            
+    with st.container(border=True):
+        st.checkbox("Seperate by paragraphs",value=st.session_state["use_para"])
+        
+        if not st.session_state['use_para']:
+            st.number_input("Seperate every x word:", disabled=True)
 
 if st.button('Analyse'):
     # Initialize the progress bar
