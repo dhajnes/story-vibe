@@ -11,7 +11,7 @@ tokenizer = AutoTokenizer.from_pretrained('nlptown/bert-base-multilingual-uncase
 model = AutoModelForSequenceClassification.from_pretrained('nlptown/bert-base-multilingual-uncased-sentiment')
 
 
-if 'text_input' in st.session_state:
+if "text_input" in st.session_state:
 
     with st.container():
         st.write("Select analyzing granulity:")
@@ -36,19 +36,25 @@ if 'text_input' in st.session_state:
         analyze = st.button("Analyse")
         if analyze:
             # Initialize the progress bar
+            chapter_indicies = []
                 
             if option == "Paragraphs":
                 paragraphs = re.split('\n\n|\r\n', st.session_state['text_input'])
-                paragraphs = [i for i in paragraphs if len(i.split()) > st.session_state['min_size']]
+                #paragraphs = [i for i in paragraphs if len(i)>0] ##Remove empty
+                paragraphs = [i for i in paragraphs if len(i.split()) > st.session_state['min_size'] or 'chapter' in i.lower()]
+                chapter_indicies = [i for i,j in enumerate(paragraphs) if 'chapter' in j.lower()]
+                                
             elif option == "Sentences":
                 paragraphs =  re.split(r'(?<=[.!?])\s+', st.session_state['text_input'])
+                paragraphs = [i for i in paragraphs if len(i)>0] ##Remove empty
+                
             elif option == "Words":
                 paragraphs = st.session_state['text_input'].split()
+                paragraphs = [i for i in paragraphs if len(i)>0] ##Remove empty
+                                
             else:
                 pass
-            
-            paragraphs = [i for i in paragraphs if len(i)>0]
-                
+                          
             if option == "Sentences":
                 new_para = []
                 buffer = st.session_state['sentences_buffer']
@@ -61,7 +67,8 @@ if 'text_input' in st.session_state:
                         
                     new_para.append(text)
                         
-                paragraphs = new_para
+                paragraphs = new_para                
+                chapter_indicies = [i for i,j in enumerate(paragraphs) if 'chapter' in j.lower()]
                 
             elif option == "Words":
                 new_para = []
@@ -76,6 +83,7 @@ if 'text_input' in st.session_state:
                     new_para.append(text)
                         
                 paragraphs = new_para
+                chapter_indicies = [i for i,j in enumerate(paragraphs) if 'chapter' in j.lower()]
             
             st.session_state['paragraphs'] = paragraphs
 
@@ -85,7 +93,7 @@ if 'text_input' in st.session_state:
             
             steps = 1/len(paragraphs)
             scores = []
-            
+
             for i,text in enumerate(paragraphs):
                 # Progress bar
                 progress_bar.progress(i*steps, text=progress_text)
@@ -99,7 +107,10 @@ if 'text_input' in st.session_state:
             progress_bar.progress(100, text=progress_text)
             
             st.session_state['scores'] = scores
+            st.session_state['chapter_indicies'] = chapter_indicies
                     
             st.success("Process Completed!")
+            st.session_state['analysed'] = True
+        
 else:
     st.header("No text inputted")
