@@ -3,7 +3,7 @@ import numpy as np
 import time
 import re
 
-st.logo("frontend/test.jpg")
+st.logo("app/test.jpg")
 st.title("Upload Story")
 
 with st.container(border=True):

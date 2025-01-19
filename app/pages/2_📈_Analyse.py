@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 
-st.logo("frontend/test.jpg")
+st.logo("app/test.jpg")
 st.title("Analyse Text")
 
 with st.empty():

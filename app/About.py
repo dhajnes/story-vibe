@@ -4,7 +4,7 @@ import time
 
 progress_bar = st.sidebar.progress(0)
 status_text = st.sidebar.empty()
-st.logo("frontend/test.jpg")
+st.logo("app/test.jpg")
 
 with st.container(border=True):
     last_rows = np.random.randn(1, 1)
@@ -12,7 +12,7 @@ with st.container(border=True):
     
     with col1:
         with st.container(border=True):
-            st.image("frontend/test.jpg")
+            st.image("app/test.jpg")
         
     with col2:
         st.markdown("*Lorem* ipsum **dolor** ***sit amet***.")
