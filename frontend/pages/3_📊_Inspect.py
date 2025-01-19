@@ -6,7 +6,7 @@ import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
 
-st.logo("test.jpg")
+st.logo("frontend/test.jpg")
 st.title("Inspect Story")
 
 ##Init base session_state variables

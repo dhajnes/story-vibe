@@ -3,12 +3,16 @@
 
 # Ignore all .pt model files
 *.pt
+*.pth
+*.safetensors
+*.bin
 
 # Ignore TensorBoard log files and directories
 logs/
 output/
 events.out.tfevents.*
 random_stuff/
+from_kraken/
 
 # Ignore Python bytecode
 __pycache__/
