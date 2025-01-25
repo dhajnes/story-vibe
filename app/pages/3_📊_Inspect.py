@@ -76,13 +76,14 @@ with col1:
             st.line_chart()
         
 with col2:
-    st.subheader("Inputted text:")
+    st.subheader("Chosen text:")
     with st.container(border=True, height=400):
         
         if 'text_input' in st.session_state:
             #paragraphs = st.session_state['paragraphs']
-            text = st.session_state["text_input"]
-            st.write(text)
+            # text = st.session_state["text_input"]
+            text_part = st.session_state[st.session_state["segmenting"]][st.session_state['slider_value']]
+            st.write(text_part)
         else:
             st.text("Lorem Impsum Dolor Sit Amets ...")
 
@@ -115,10 +116,16 @@ with col1:
         
         if 'sentiments' in st.session_state:
             sents = st.session_state.sentiments
-            if 'paragraphs' in  st.session_state:
-                nr_of_para = len(st.session_state['paragraphs'])
+            if 'segmenting' in  st.session_state:
+                segm_option = st.session_state['segmenting']
+                print(type(st.session_state[segm_option]))
+                print(len(st.session_state[segm_option]))
+                nr_of_segm = len(st.session_state[segm_option])
             else:
-                nr_of_para = 1
+                nr_of_segm = 1
+
+            print(f"[DEBUG] nr_of_segm: {nr_of_segm}")
+            # print(f"st.session_state['paragraphs'].shape: {st.session_state['paragraphs'].shape}")
             
             nr_of_sents = 0
             categories = []
@@ -127,7 +134,7 @@ with col1:
                     categories.append(sent)
                     nr_of_sents += 1
                     
-            x = np.arange(nr_of_para) 
+            x = np.arange(nr_of_segm) 
             traces = []
             
             # Create the layout
@@ -137,7 +144,8 @@ with col1:
             )
             
             for i in range(nr_of_sents):
-                y = np.random.randn(nr_of_para)
+                # y = np.random.randn(nr_of_segm)
+                y = st.session_state["results"][:,i]
                 traces.append(
                     go.Scatter(
                             x=x, y=y,

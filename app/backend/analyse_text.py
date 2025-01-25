@@ -31,8 +31,8 @@ class ModelServing:
         self.config = None
         self.segments = None
         self.batch_size = None
-        self.batch_map = {"cpu":{"sentence":4, "paragraph":2},    # TODO this is hosting dependent
-                          "cuda:0":{"sentence":8, "paragraph":4}}
+        self.batch_map = {"cpu":{"sentences":4, "paragraphs":2},    # TODO this is hosting dependent
+                          "cuda:0":{"sentences":8, "paragraphs":4}}
         self._load_model()
 
     def _load_model(self) -> None:
@@ -44,18 +44,25 @@ class ModelServing:
         print(f"Max length: {self.config.max_position_embeddings}")
 
     # TODO maybe this should return parsed text
-    def parse_text(self, segment_type: Literal["sentence", "paragraph"],
-                   source_text_path: Union[str, Path]) -> None:
-        
+    def parse_text(self, segment_type: Literal["sentences", "paragraphs"], text: str = None,
+                   source_text_path: Union[str, Path] = None) -> None:
+        assert (text is None) != (source_text_path is None), (
+        "Either 'text' or 'source_text_path' must be provided, but not both.")
+
         self.segment_type = segment_type
         self.batch_size = self.batch_map[self.device_str][self.segment_type]
-        with open(source_text_path, 'r') as file:
-            self.source_text = file.read()
+        if source_text_path is not None:
+            with open(source_text_path, 'r') as file:
+                self.source_text = file.read()
+        else:
+            self.source_text = text
         
-        if self.segment_type == "paragraph":
+        if self.segment_type == "paragraphs":
             self.segments = self.source_text.split('\n\n')
-        elif self.segment_type == "sentence":
+        elif self.segment_type == "sentences":
             self.segments = nltk.sent_tokenize(self.source_text)
+        
+        return self.segments
 
     # TODO typehint this
     def get_sentiment(self):  
@@ -77,6 +84,7 @@ class ModelServing:
             self.all_sentiments.extend(scores)
         
         self.all_sentiments = np.array(self.all_sentiments)
+        return self.all_sentiments
 
 
 if __name__ == "__main__":
@@ -84,7 +92,7 @@ if __name__ == "__main__":
 
     ms = ModelServing("/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024",
                       "cuda:0")
-    ms.parse_text("sentence", BOOK_PATH)
+    ms.parse_text("sentences", BOOK_PATH)
     ms.get_sentiment()
 
     print("All sentiments: ", ms.all_sentiments)

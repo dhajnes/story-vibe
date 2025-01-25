@@ -31,13 +31,25 @@ with st.container(border=True):
 if text_input:
     st.session_state['text_input'] = text_input
         
-    paragraphs = re.split('\n\n|\r\n', text_input)
-    paragraphs = [i for i in paragraphs if len(i)>1]
-    st.session_state['paragraphs'] = paragraphs
+    # paragraphs = re.split('\n\n|\r\n', text_input)
+    # paragraphs = [i for i in paragraphs if len(i)>1]
+    # st.session_state['paragraphs'] = paragraphs
 
 col1, col2 = st.columns([4,1],vertical_alignment='center')
 
 with col1:
+    st.markdown("<p> Choose Supported Text Parsing:</p>", unsafe_allow_html=True)
+    if 'segmenting' not in st.session_state:
+        st.session_state['segmenting'] = "paragraphs"  # Default option
+
+    # Radio button for parsing option
+    st.session_state['segmenting'] = st.radio(
+        "Parsing Option:",
+        options=["paragraphs", "sentences"],
+        index=0 if st.session_state['segmenting'] == "paragraphs" else 1,
+        help="Choose whether to parse text into paragraphs or sentences."
+    )
+
     st.markdown("<p> Choose Supported Sentiments:</p>", unsafe_allow_html=True)
 
     if 'sentiments' not in st.session_state:
