@@ -32,12 +32,12 @@ col1, col2 = st.columns([3,2])
 with col1:
     st.subheader("Segment Slider:")
     with st.container(border=True):
-        if 'paragraphs' in st.session_state:
-            paragraphs = st.session_state['paragraphs']
+        if 'segments' in st.session_state:
+            segments = st.session_state['segments']
          
             trace =  go.Scatter(
-                x=np.arange(len(paragraphs)),
-                y=[len(p) for p in paragraphs],
+                x=np.arange(len(segments)),
+                y=[len(p) for p in segments],
                
                 mode='lines+markers',
                 marker=dict( 
@@ -64,7 +64,7 @@ with col1:
                 if len(selected_points) > 0:
                     para_id = st.session_state['chosen_para']['selection']['point_indices'][0]
                     st.session_state['slider_value'] = para_id
-                    st.session_state["text_input"] = st.session_state["paragraphs"][para_id]
+                    st.session_state["text_input"] = st.session_state["segments"][para_id]
                 
             fig.add_vline(x=st.session_state['slider_value'],line_color="purple")
             
@@ -79,32 +79,32 @@ with col2:
     st.subheader("Chosen text:")
     with st.container(border=True, height=400):
         
-        if 'text_input' in st.session_state:
-            #paragraphs = st.session_state['paragraphs']
+        if 'text_input' and "segments" in st.session_state:
+            #segments = st.session_state['segments']
             # text = st.session_state["text_input"]
-            text_part = st.session_state[st.session_state["segmenting"]][st.session_state['slider_value']]
+            text_part = st.session_state["segments"][st.session_state['slider_value']]
             st.write(text_part)
         else:
             st.text("Lorem Impsum Dolor Sit Amets ...")
 
 with col1:
-        if 'paragraphs' in st.session_state:
+        if 'segments' in st.session_state:
             def slider_update():
-                if st.session_state['slider_value'] >= 0 and len(st.session_state["paragraphs"])>0:
-                    paragraphs = st.session_state["paragraphs"]
-                    st.session_state["text_input"] = paragraphs[st.session_state['slider_value']]
+                if st.session_state['slider_value'] >= 0 and len(st.session_state["segments"])>0:
+                    segments = st.session_state["segments"]
+                    st.session_state["text_input"] = segments[st.session_state['slider_value']]
             
                 
             selected_value = st.slider(
-                label="Select paragraph",
-                min_value=[-1 if  len(st.session_state['paragraphs'])==0 else 0][0],  # Minimum value of the slider
-                max_value= len(st.session_state['paragraphs'])-1,  # Maximum value of the slider
+                label="Select segment",
+                min_value=[-1 if  len(st.session_state['segments'])==0 else 0][0],  # Minimum value of the slider
+                max_value= len(st.session_state['segments'])-1,  # Maximum value of the slider
                 value=st.session_state['slider_value'],  # Default value (optional)
                 key='slider_value',
                 on_change=slider_update
             )
         else:
-            st.slider(label="Select paragraph",
+            st.slider(label="Select segment",
                 min_value=0,  # Minimum value of the slider
                 max_value=1  # Maximum value of the slider
             )
@@ -118,21 +118,25 @@ with col1:
             sents = st.session_state.sentiments
             if 'segmenting' in  st.session_state:
                 segm_option = st.session_state['segmenting']
-                print(type(st.session_state[segm_option]))
-                print(len(st.session_state[segm_option]))
-                nr_of_segm = len(st.session_state[segm_option])
+                print(type(st.session_state["segments"]))
+                print(len(st.session_state["segments"]))
+                nr_of_segm = len(st.session_state["segments"])
             else:
                 nr_of_segm = 1
 
             print(f"[DEBUG] nr_of_segm: {nr_of_segm}")
-            # print(f"st.session_state['paragraphs'].shape: {st.session_state['paragraphs'].shape}")
+            # print(f"st.session_state['segments'].shape: {st.session_state['segments'].shape}")
             
             nr_of_sents = 0
             categories = []
             for sent,value in st.session_state.sentiments.items():
                 if value == True:
                     categories.append(sent)
+                    # TODO FIXME for now, only full range of labels available
                     nr_of_sents += 1
+            
+            categories = st.session_state.model_labels
+            nr_of_sents = len(categories)
                     
             x = np.arange(nr_of_segm) 
             traces = []
@@ -171,18 +175,25 @@ with col1:
     
 with col2:
     with st.container(border=True):
-        if 'sentiments' in st.session_state:
-            categories = []
-            for sent,value in st.session_state.sentiments.items():
-                if value == True:
-                    categories.append(sent)
+        if 'results' in st.session_state:
+            # i)   take the pointer from the chosen segment
+            # ii)  indice with the pointer into results
+            # iii) show the values in the radar plot
+            radar_results = st.session_state['results'][st.session_state['slider_value'], :]
+            category_list = st.session_state['model_labels']
+            
+
+            # categories = []
+            # for sent,value in st.session_state.sentiments.items():
+            #     if value == True:
+            #         categories.append(sent)
                     
-            values = np.arange(len(categories)) + 1
+            # values = np.arange(len(categories)) + 1
 
             # Create a DataFrame
             df = pd.DataFrame({
-                'category': categories,
-                'value': values
+                'category': category_list,
+                'value': radar_results
             })
             
             # Create a radar chart

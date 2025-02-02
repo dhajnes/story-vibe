@@ -92,9 +92,11 @@ if __name__ == "__main__":
 
     ms = ModelServing("/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024",
                       "cuda:0")
-    ms.parse_text("sentences", BOOK_PATH)
+    sample_text = "This is a lovely evening. Isn't it?"
+    # ms.parse_text("sentences", BOOK_PATH)
+    ms.parse_text("sentences", text=sample_text)
     ms.get_sentiment()
-
+    np.set_printoptions(precision=3, suppress=True)
     print("All sentiments: ", ms.all_sentiments)
         
 

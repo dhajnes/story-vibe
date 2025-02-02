@@ -17,11 +17,14 @@ st.title("Analyse Text")
 print(f"st.session_state keys: {list(st.session_state.keys())}")
 print(f"[DEBUG] segmenting session state: {st.session_state['segmenting']}")
 segment_opt = st.session_state["segmenting"]
+st.session_state["model"] = ms.model
+st.session_state["model_labels"] = [ms.model.config.id2label[key] for key in ms.model.config.id2label]#ms.model.config.id2label
+print(f"[DEBUG] st.session_state['model_labels']: {st.session_state['model_labels']}")
 
 with st.empty():
     progress_text = "Analyzing... Please wait."
     progress_bar = st.progress(0, text=progress_text)
-    st.session_state[segment_opt] = ms.parse_text(segment_opt, text=st.session_state["text_input"])
+    st.session_state["segments"] = ms.parse_text(segment_opt, text=st.session_state["text_input"])
     st.session_state["results"] = ms.get_sentiment()
     print(f"st.session_state keys: {list(st.session_state.keys())}")
     print(f"shape of results: {np.shape(st.session_state['results'])}")
