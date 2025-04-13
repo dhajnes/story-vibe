@@ -2,6 +2,9 @@ import streamlit as st
 import numpy as np
 import time
 import re
+from utils.ui_styles import apply_global_styles
+
+apply_global_styles()
 
 st.logo("app/test.jpg")
 st.title("Upload Story")
@@ -30,10 +33,6 @@ with st.container(border=True):
     
 if text_input:
     st.session_state['text_input'] = text_input
-        
-    # paragraphs = re.split('\n\n|\r\n', text_input)
-    # paragraphs = [i for i in paragraphs if len(i)>1]
-    # st.session_state['paragraphs'] = paragraphs
 
 col1, col2 = st.columns([4,1],vertical_alignment='center')
 
@@ -50,38 +49,18 @@ with col1:
         help="Choose whether to parse text into paragraphs or sentences."
     )
 
-    st.markdown("<p> Choose Supported Sentiments:</p>", unsafe_allow_html=True)
+    st.markdown("<p> Supported Sentiments:</p>", unsafe_allow_html=True)
 
-    if 'sentiments' not in st.session_state:
-        st.session_state.sentiments = {
-            'Neutral': True,
-            'Sadness': False,
-            'Happiness': False,
-            'Fear': False,
-            'Disgust': False,
-            'Surprise': False,
-            'Anger': False
-        }
-
-    # Display checkboxes and update session state
-    st.session_state.sentiments['Neutral'] = st.checkbox('Neutral (mandatory)', value=True, disabled=True)
-    st.session_state.sentiments['Sadness'] = st.checkbox('Sadness', value=st.session_state.sentiments['Sadness'])
-    st.session_state.sentiments['Happiness'] = st.checkbox('Happiness', value=st.session_state.sentiments['Happiness'])
-    st.session_state.sentiments['Fear'] = st.checkbox('Fear', value=st.session_state.sentiments['Fear'])
-    st.session_state.sentiments['Disgust'] = st.checkbox('Disgust', value=st.session_state.sentiments['Disgust'])
-    st.session_state.sentiments['Surprise'] = st.checkbox('Surprise', value=st.session_state.sentiments['Surprise'])
-    st.session_state.sentiments['Anger'] = st.checkbox('Anger', value=st.session_state.sentiments['Anger'])
-
-    # Display the selected sentiments
-    st.divider()
-    st.write("Selected Sentiments:")
-    display_text = "Neutral"
-    for sent, active in st.session_state.sentiments.items():
-        if active and sent!='Neutral':
-            display_text += ", {}".format(sent)
-    st.text(display_text)
+    supported_sentiments = ['Neutral', 'Sadness', 'Happiness', 'Fear', 'Disgust', 'Surprise', 'Anger']
+    st.markdown("• " + "\n• ".join(supported_sentiments))
     
 with col2:
-    st.button("Analyse!") #Start analysing input or uploaded text
+    # st.button("Analyse!") #Start analysing input or uploaded text
+
+    if st.button("Analyse!"):
+        if 'text_input' in st.session_state and len(st.session_state['text_input'].strip()) > 0:
+            st.switch_page("pages/2_📈_Analyse.py")
+        else:
+            st.warning("Please provide some input text first.")
     
 st.divider()

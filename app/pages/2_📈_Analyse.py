@@ -3,6 +3,9 @@ import time
 import numpy as np
 
 from backend.analyse_text import ModelServing
+from utils.ui_styles import apply_global_styles
+
+apply_global_styles()
 
 # BOOK_PATH = "/home/andrej/Code/story-vibe/data/texts/alice_in_wonderland.txt"
 ms = ModelServing("/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024",
@@ -25,13 +28,31 @@ with st.empty():
     progress_text = "Analyzing... Please wait."
     progress_bar = st.progress(0, text=progress_text)
     st.session_state["segments"] = ms.parse_text(segment_opt, text=st.session_state["text_input"])
-    st.session_state["results"] = ms.get_sentiment()
+    # st.session_state["results"] = ms.get_sentiment()
+    raw_results = ms.get_sentiment()
+
+    # Add small Gaussian noise
+    noise_strength = 0.05  # try 0.01 to 0.1
+    noise = np.random.normal(loc=0, scale=noise_strength, size=raw_results.shape)
+    noisy_results = raw_results + noise
+
+    # Ensure no negatives and re-normalize row-wise
+    noisy_results = np.clip(noisy_results, 1e-8, None)
+    noisy_results = noisy_results / noisy_results.sum(axis=1, keepdims=True)
+
+    st.session_state["results"] = noisy_results
+
     print(f"st.session_state keys: {list(st.session_state.keys())}")
     print(f"shape of results: {np.shape(st.session_state['results'])}")
+    st.session_state["model_labels"] = list(ms.model.config.id2label.values())
+
     for percent_complete in range(100):
         time.sleep(0.01)
         progress_bar.progress(percent_complete + 1, text=progress_text)
     time.sleep(1)
     progress_bar.empty()
+
+if st.button("Inspect!"):
+    st.switch_page("pages/3_📊_Inspect.py")
     
-st.button("Rerun")
+# st.button("Rerun")

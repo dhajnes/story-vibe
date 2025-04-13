@@ -1,10 +1,15 @@
 import streamlit as st
 import numpy as np
 import time
+from utils.ui_styles import apply_global_styles
 
 progress_bar = st.sidebar.progress(0)
 status_text = st.sidebar.empty()
 st.logo("app/test.jpg")
+
+
+apply_global_styles()
+
 
 with st.container(border=True):
     last_rows = np.random.randn(1, 1)
@@ -60,8 +65,3 @@ for i in range(1, 101):
     time.sleep(0.05)
 
 progress_bar.empty()
-
-# Streamlit widgets automatically run the script from top to bottom. Since
-# this button is not connected to any other logic, it just causes a plain
-# rerun.
-st.button("Re-run")

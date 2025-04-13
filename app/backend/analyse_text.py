@@ -43,7 +43,6 @@ class ModelServing:
         self.config = AutoConfig.from_pretrained(self.model_dir_path)
         print(f"Max length: {self.config.max_position_embeddings}")
 
-    # TODO maybe this should return parsed text
     def parse_text(self, segment_type: Literal["sentences", "paragraphs"], text: str = None,
                    source_text_path: Union[str, Path] = None) -> None:
         assert (text is None) != (source_text_path is None), (
@@ -58,7 +57,15 @@ class ModelServing:
             self.source_text = text
         
         if self.segment_type == "paragraphs":
-            self.segments = self.source_text.split('\n\n')
+            # Normalize line breaks and split
+            raw_segments = self.source_text.strip().split('\n\n')
+            self.segments = [seg.strip() for seg in raw_segments if seg.strip()]
+            
+            # Fallback to sentence mode if only one paragraph and it's too short
+            if len(self.segments) <= 1:
+                print("[INFO] Falling back to sentence mode due to insufficient paragraphs.")
+                self.segments = nltk.sent_tokenize(self.source_text)
+                self.segment_type = "sentences"
         elif self.segment_type == "sentences":
             self.segments = nltk.sent_tokenize(self.source_text)
         
