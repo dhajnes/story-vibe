@@ -1,3 +1,4 @@
+
 import streamlit as st
 import time
 import numpy as np
@@ -7,52 +8,67 @@ from utils.ui_styles import apply_global_styles
 
 apply_global_styles()
 
-# BOOK_PATH = "/home/andrej/Code/story-vibe/data/texts/alice_in_wonderland.txt"
-ms = ModelServing("/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024",
-                    "cuda:0")
-# ms.parse_text("sentence", BOOK_PATH)
-# ms.get_sentiment()
+from pathlib import Path
 
-st.logo("app/test.jpg")
+current_file = Path(__file__).resolve()
+model_path = current_file.parent / "../../data/models/checkpoint-08_07_2024"
+model_path = model_path.resolve()
+
+ms = ModelServing(model_path, "cuda:0")
+
+# UI header
+st.logo("app/assets/logo_circle.png", size="large")
 st.title("Analyse Text")
-# print("The insides of st.session_state:")
-# print(st.session_state)
-print(f"st.session_state keys: {list(st.session_state.keys())}")
-print(f"[DEBUG] segmenting session state: {st.session_state['segmenting']}")
-segment_opt = st.session_state["segmenting"]
-st.session_state["model"] = ms.model
-st.session_state["model_labels"] = [ms.model.config.id2label[key] for key in ms.model.config.id2label]#ms.model.config.id2label
-print(f"[DEBUG] st.session_state['model_labels']: {st.session_state['model_labels']}")
 
-with st.empty():
-    progress_text = "Analyzing... Please wait."
-    progress_bar = st.progress(0, text=progress_text)
-    st.session_state["segments"] = ms.parse_text(segment_opt, text=st.session_state["text_input"])
-    # st.session_state["results"] = ms.get_sentiment()
+# Segmenting method
+print(f"st.session_state keys: {list(st.session_state.keys())}")
+print(f"[DEBUG] segmenting session state: {st.session_state.get('segmenting')}")
+segment_opt = st.session_state.get("segmenting")
+
+# Set model in session
+st.session_state["model"] = ms.model
+st.session_state["model_labels"] = list(ms.model.config.id2label.values())
+
+# Init flag for rerun
+if "rerun_analysis" not in st.session_state:
+    st.session_state["rerun_analysis"] = False
+
+# Rerun button
+if st.button("🔁 Rerun Analysis"):
+    st.session_state["rerun_analysis"] = True
+    st.session_state.pop("results", None)
+
+# Run analysis if needed
+if "results" not in st.session_state or st.session_state["rerun_analysis"]:
+
+    # Center the GIF using columns
+    col1, col2, col3 = st.columns([1, 2, 1])  # Adjust ratios if needed
+    with col2:
+        loading_container = st.empty()
+        loading_container.image("app/assets/book_loading.gif", caption="Analyzing...")
+
+    # Perform inference
+    segments = ms.parse_text(segment_opt, text=st.session_state["text_input"])
     raw_results = ms.get_sentiment()
 
-    # Add small Gaussian noise
-    noise_strength = 0.05  # try 0.01 to 0.1
+    # Post-process with noise
+    noise_strength = 0.05
     noise = np.random.normal(loc=0, scale=noise_strength, size=raw_results.shape)
     noisy_results = raw_results + noise
-
-    # Ensure no negatives and re-normalize row-wise
     noisy_results = np.clip(noisy_results, 1e-8, None)
     noisy_results = noisy_results / noisy_results.sum(axis=1, keepdims=True)
 
+    # Store results
+    st.session_state["segments"] = segments
     st.session_state["results"] = noisy_results
-
-    print(f"st.session_state keys: {list(st.session_state.keys())}")
-    print(f"shape of results: {np.shape(st.session_state['results'])}")
     st.session_state["model_labels"] = list(ms.model.config.id2label.values())
 
-    for percent_complete in range(100):
-        time.sleep(0.01)
-        progress_bar.progress(percent_complete + 1, text=progress_text)
-    time.sleep(1)
-    progress_bar.empty()
+    # Remove loading GIF
+    loading_container.empty()
 
+    # Reset rerun flag
+    st.session_state["rerun_analysis"] = False
+
+# Button to go to Inspect
 if st.button("Inspect!"):
     st.switch_page("pages/3_📊_Inspect.py")
-    
-# st.button("Rerun")

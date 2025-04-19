@@ -3,26 +3,43 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoConfig
 )
-import torch
-from bs4 import BeautifulSoup
-from typing import Union, Literal, List
-
-import pandas as pd
-import numpy as np
-
-import matplotlib.pyplot as plt
-import nltk
-import time
+from typing import Union, Literal, Optional, List
 from pathlib import Path
+import numpy as np
+import torch
+import nltk
 
 # Download the Punkt tokenizer models
 nltk.download('punkt')
 
-
-MODEL_DIR_PATH = "/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024"
+current_file = Path(__file__).resolve()
+model_path = current_file.parent / "../../data/models/checkpoint-08_07_2024"
+MODEL_DIR_PATH = model_path.resolve()
 
 class ModelServing:
-    def __init__(self, model_dir_path, device: Literal["cpu", "cuda:0"]):
+    """
+    A class to serve a fine-tuned sentiment classification model using HuggingFace Transformers.
+
+    Attributes:
+        model_dir_path (Union[str, Path]): Path to the model directory.
+        device (torch.device): The PyTorch device to use ('cpu' or 'cuda:0').
+        model (PreTrainedModel): The loaded transformer model.
+        tokenizer (PreTrainedTokenizer): Tokenizer associated with the model.
+        config (PretrainedConfig): Configuration object for the model.
+        segments (Optional[List[str]]): Tokenized segments (sentences or paragraphs) of the input text.
+        batch_size (int): Number of segments processed per batch.
+        segment_type (str): Either 'sentences' or 'paragraphs'.
+        all_sentiments (Optional[np.ndarray]): The output sentiment scores.
+    """
+
+    def __init__(self, model_dir_path: Union[str, Path], device: Literal["cpu", "cuda:0"]):
+        """
+        Initializes the ModelServing class and loads the model.
+
+        Args:
+            model_dir_path (Union[str, Path]): Path to the model checkpoint directory.
+            device (Literal["cpu", "cuda:0"]): Device to run inference on.
+        """
         self.model_dir_path = model_dir_path
         self.device = torch.device(device)
         self.device_str = device
@@ -36,6 +53,10 @@ class ModelServing:
         self._load_model()
 
     def _load_model(self) -> None:
+        """
+        Loads the model, tokenizer, and config from the specified directory.
+        """
+
         print(f"[INFO] Loading model from: '{self.model_dir_path}', on the device: '{self.device}'.")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_dir_path)
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_dir_path)
@@ -43,8 +64,23 @@ class ModelServing:
         self.config = AutoConfig.from_pretrained(self.model_dir_path)
         print(f"Max length: {self.config.max_position_embeddings}")
 
-    def parse_text(self, segment_type: Literal["sentences", "paragraphs"], text: str = None,
-                   source_text_path: Union[str, Path] = None) -> None:
+    def parse_text(
+        self,
+        segment_type: Literal["sentences", "paragraphs"],
+        text: Optional[str] = None,
+        source_text_path: Optional[Union[str, Path]] = None
+    ) -> List[str]:
+        """
+        Parses input text into segments based on the specified granularity.
+
+        Args:
+            segment_type (Literal["sentences", "paragraphs"]): The unit of text segmentation.
+            text (Optional[str]): Raw text to analyze.
+            source_text_path (Optional[Union[str, Path]]): File path to load text from.
+
+        Returns:
+            List[str]: A list of segmented strings (sentences or paragraphs).
+        """
         assert (text is None) != (source_text_path is None), (
         "Either 'text' or 'source_text_path' must be provided, but not both.")
 
@@ -71,10 +107,16 @@ class ModelServing:
         
         return self.segments
 
-    # TODO typehint this
-    def get_sentiment(self):  
-        assert self.segments is not None, "self.segments is None, first run model.parse_text(segment_type, source_text_path)."
-        
+    def get_sentiment(self) -> np.ndarray:
+        """
+        Runs sentiment analysis on previously parsed text segments.
+
+        Returns:
+            np.ndarray: An array of shape (n_segments, n_classes) with softmax scores.
+        """  
+        assert self.segments is not None, (
+                    "self.segments is None, first run model.parse_text(segment_type, source_text_path or text)."
+                )        
         self.all_sentiments = []
         
         for i in range(0, len(self.segments), self.batch_size):
@@ -95,12 +137,9 @@ class ModelServing:
 
 
 if __name__ == "__main__":
-    BOOK_PATH = "/home/andrej/Code/story-vibe/data/texts/alice_in_wonderland.txt"
 
-    ms = ModelServing("/home/andrej/Code/story-vibe/data/models/checkpoint-08_07_2024",
-                      "cuda:0")
+    ms = ModelServing(MODEL_DIR_PATH, "cuda:0")
     sample_text = "This is a lovely evening. Isn't it?"
-    # ms.parse_text("sentences", BOOK_PATH)
     ms.parse_text("sentences", text=sample_text)
     ms.get_sentiment()
     np.set_printoptions(precision=3, suppress=True)

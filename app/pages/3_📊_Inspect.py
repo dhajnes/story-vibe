@@ -8,8 +8,7 @@ import numpy as np
 from utils.ui_styles import apply_global_styles
 
 apply_global_styles()
-
-st.logo("app/test.jpg")
+st.logo("app/assets/logo_circle.png", size="large")
 st.title("Inspect Story")
 
 ##Init base session_state variables
@@ -29,7 +28,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-    
 col1, col2 = st.columns([3,2])
 with col1:
     st.subheader("Segment Overview")
@@ -76,8 +74,7 @@ with col1:
             st.plotly_chart(fig, on_select=callback, key="chosen_para", use_container_width=True, config=config)
         else:
             st.line_chart()
-
-        
+     
 with col2:
     st.subheader("Chosen text:")
 
@@ -101,8 +98,8 @@ with col2:
                 alpha = max(0.1, 1.0 - (abs_offset / SEG_RADIUS))  # Smooth fade
                 color = f"rgba(255, 255, 255, {alpha:.2f})"
                 font_weight = "bold" if offset == 0 else "normal"
-                prefix = "👉 **" if offset == 0 else "&nbsp;&nbsp;&nbsp;&nbsp;"
-                suffix = "**" if offset == 0 else ""
+                prefix = "👉 " if offset == 0 else "&nbsp;&nbsp;&nbsp;&nbsp;"
+                suffix = "" if offset == 0 else ""
                 anchor = f"id='segment-{idx}'" if offset == 0 else ""
                 font_size = 1.25
 
@@ -164,8 +161,6 @@ with col1:
             max_value=1  # Maximum value of the slider
         )
     
-
-
 with col1:
     with st.container(border=True):
         if 'results' in st.session_state and 'model_labels' in st.session_state and 'segments' in st.session_state:

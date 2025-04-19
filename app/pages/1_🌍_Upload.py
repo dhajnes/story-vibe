@@ -6,7 +6,7 @@ from utils.ui_styles import apply_global_styles
 
 apply_global_styles()
 
-st.logo("app/test.jpg")
+st.logo("app/assets/logo_circle.png", size="large")
 st.title("Upload Story")
 
 with st.container(border=True):
@@ -52,11 +52,10 @@ with col1:
     st.markdown("<p> Supported Sentiments:</p>", unsafe_allow_html=True)
 
     supported_sentiments = ['Neutral', 'Sadness', 'Happiness', 'Fear', 'Disgust', 'Surprise', 'Anger']
-    st.markdown("• " + "\n• ".join(supported_sentiments))
+    for sentiment in supported_sentiments:
+        st.markdown(f"• {sentiment}")
     
 with col2:
-    # st.button("Analyse!") #Start analysing input or uploaded text
-
     if st.button("Analyse!"):
         if 'text_input' in st.session_state and len(st.session_state['text_input'].strip()) > 0:
             st.switch_page("pages/2_📈_Analyse.py")
