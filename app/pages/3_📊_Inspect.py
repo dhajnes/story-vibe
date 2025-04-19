@@ -7,6 +7,14 @@ import pandas as pd
 import numpy as np
 from utils.ui_styles import apply_global_styles
 
+def sync_text_input():
+    if (
+        "segments" in st.session_state and 
+        "slider_value" in st.session_state and 
+        isinstance(st.session_state["slider_value"], int)
+    ):
+        st.session_state["text_input"] = st.session_state["segments"][st.session_state["slider_value"]]
+
 apply_global_styles()
 st.logo("app/assets/logo_circle.png", size="large")
 st.title("Inspect Story")
@@ -14,6 +22,7 @@ st.title("Inspect Story")
 ##Init base session_state variables
 if 'slider_value' not in st.session_state:
     st.session_state['slider_value'] = 0
+    sync_text_input()
 
 ##Markdown styles
 st.markdown(
@@ -28,8 +37,50 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+def slider_update():
+    if st.session_state['slider_value'] >= 0 and len(st.session_state["segments"])>0:
+        segments = st.session_state["segments"]
+        st.session_state["text_input"] = segments[st.session_state['slider_value']]
+
 col1, col2 = st.columns([3,2])
 with col1:
+
+    col_input, col_btn = st.columns([4, 1])
+    with col_input:
+        seg_input = st.number_input(
+            "Jump to segment:",
+            min_value=0,
+            max_value=len(st.session_state["segments"]) - 1,
+            # value=st.session_state["slider_value"],
+            step=1,
+            key="segment_input"  # DIFFERENT KEY from slider_value
+        )
+        # st.session_state["segment_input"] = seg_input
+
+    with col_btn:
+        st.markdown("<div style='padding-top: 1.95em;'></div>", unsafe_allow_html=True)
+
+        if st.button("Go!"):
+            st.session_state["slider_value"] = st.session_state["segment_input"]
+            # slider_update()  # <<< Force update now
+
+
+    if 'segments' in st.session_state:
+        
+            
+        selected_value = st.slider(
+            label="Select segment",
+            min_value=[-1 if  len(st.session_state['segments'])==0 else 0][0],  # Minimum value of the slider
+            max_value= len(st.session_state['segments'])-1,  # Maximum value of the slider
+            key='slider_value',
+            on_change=slider_update
+        )
+    else:
+        st.slider(label="Select segment",
+            min_value=0,  # Minimum value of the slider
+            max_value=1  # Maximum value of the slider
+        )
+
     st.subheader("Segment Overview")
     with st.container(border=True):
         if 'segments' in st.session_state:
@@ -74,94 +125,8 @@ with col1:
             st.plotly_chart(fig, on_select=callback, key="chosen_para", use_container_width=True, config=config)
         else:
             st.line_chart()
-     
-with col2:
-    st.subheader("Chosen text:")
 
-    SEG_RADIUS = 10  # Segments before/after current
-    container_height = 600
-    with st.container(border=True, height=container_height):
-        if "segments" in st.session_state and "text_input" in st.session_state:
-            current_idx = st.session_state["slider_value"]
-            all_segments = st.session_state["segments"]
-            total = len(all_segments)
 
-            scroll_to = f"segment-{current_idx}"  # HTML anchor for scrolling
-
-            html_segments = []
-            for offset in range(0, SEG_RADIUS + 1):
-                idx = current_idx + offset
-                if idx < 0 or idx >= total:
-                    continue
-
-                abs_offset = abs(offset)
-                alpha = max(0.1, 1.0 - (abs_offset / SEG_RADIUS))  # Smooth fade
-                color = f"rgba(255, 255, 255, {alpha:.2f})"
-                font_weight = "bold" if offset == 0 else "normal"
-                prefix = "👉 " if offset == 0 else "&nbsp;&nbsp;&nbsp;&nbsp;"
-                suffix = "" if offset == 0 else ""
-                anchor = f"id='segment-{idx}'" if offset == 0 else ""
-                font_size = 1.25
-
-                # Wrap segment in a paragraph with anchor
-                html_segments.append(
-                    f"<p {anchor} style='color:{color}; font-weight:{font_weight}; margin-bottom: 1em;'>"
-                    f"{prefix}{all_segments[idx]}{suffix}</p>"
-                )
-
-            # Combine HTML with scroll target
-            html_output = (
-                f"<div style='overflow-y: auto; max-height: {container_height};'>"
-                f"<a name='{scroll_to}'></a>"
-                + "\n".join(html_segments) +
-                f"</div>"
-            )
-
-            # Inject HTML
-            st.markdown(html_output, unsafe_allow_html=True)
-
-with col1:
-
-    col_input, col_btn = st.columns([4, 1])
-
-    with col_input:
-        seg_input = st.number_input(
-            "Jump to segment:",
-            min_value=0,
-            max_value=len(st.session_state["segments"]) - 1,
-            value=st.session_state["slider_value"],
-            step=1,
-            key="segment_input"  # DIFFERENT KEY from slider_value
-        )
-
-    with col_btn:
-        st.markdown("<div style='padding-top: 1.95em;'></div>", unsafe_allow_html=True)
-
-        if st.button("Go!"):
-            st.session_state["slider_value"] = st.session_state["segment_input"]
-
-    if 'segments' in st.session_state:
-        def slider_update():
-            if st.session_state['slider_value'] >= 0 and len(st.session_state["segments"])>0:
-                segments = st.session_state["segments"]
-                st.session_state["text_input"] = segments[st.session_state['slider_value']]
-        
-            
-        selected_value = st.slider(
-            label="Select segment",
-            min_value=[-1 if  len(st.session_state['segments'])==0 else 0][0],  # Minimum value of the slider
-            max_value= len(st.session_state['segments'])-1,  # Maximum value of the slider
-            value=st.session_state['slider_value'],  # Default value (optional)
-            key='slider_value',
-            on_change=slider_update
-        )
-    else:
-        st.slider(label="Select segment",
-            min_value=0,  # Minimum value of the slider
-            max_value=1  # Maximum value of the slider
-        )
-    
-with col1:
     with st.container(border=True):
         if 'results' in st.session_state and 'model_labels' in st.session_state and 'segments' in st.session_state:
             segments = st.session_state['segments']
@@ -206,6 +171,51 @@ with col1:
             st.warning("No sentiment results available to display.")
     
 with col2:
+
+    SEG_RADIUS = 10  # Segments before/after current
+    container_height = 600
+
+    st.subheader("Chosen text:")
+    with st.container(border=True, height=container_height):
+        if "segments" in st.session_state and "text_input" in st.session_state:
+            current_idx = st.session_state["slider_value"]
+            all_segments = st.session_state["segments"]
+            total = len(all_segments)
+
+            scroll_to = f"segment-{current_idx}"  # HTML anchor for scrolling
+
+            html_segments = []
+            for offset in range(0, SEG_RADIUS + 1):
+                idx = current_idx + offset
+                if idx < 0 or idx >= total:
+                    continue
+
+                abs_offset = abs(offset)
+                alpha = max(0.1, 1.0 - (abs_offset / SEG_RADIUS))  # Smooth fade
+                color = f"rgba(255, 255, 255, {alpha:.2f})"
+                font_weight = "bold" if offset == 0 else "normal"
+                prefix = "👉 " if offset == 0 else "&nbsp;&nbsp;&nbsp;&nbsp;"
+                suffix = "" if offset == 0 else ""
+                anchor = f"id='segment-{idx}'" if offset == 0 else ""
+                font_size = 1.25
+
+                # Wrap segment in a paragraph with anchor
+                html_segments.append(
+                    f"<p {anchor} style='color:{color}; font-weight:{font_weight}; margin-bottom: 1em;'>"
+                    f"{prefix}{all_segments[idx]}{suffix}</p>"
+                )
+
+            # Combine HTML with scroll target
+            html_output = (
+                f"<div style='overflow-y: auto; max-height: {container_height};'>"
+                f"<a name='{scroll_to}'></a>"
+                + "\n".join(html_segments) +
+                f"</div>"
+            )
+
+            # Inject HTML
+            st.markdown(html_output, unsafe_allow_html=True)
+
     with st.container(border=True):
         if 'results' in st.session_state:
             # i)   take the pointer from the chosen segment
@@ -245,6 +255,8 @@ with col2:
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.line_chart()
+    
+    
 
 
 
