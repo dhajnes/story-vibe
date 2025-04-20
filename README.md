@@ -18,6 +18,17 @@ The script is powered by `Streamlit` a front-end Python library.
   <img src="imgsrc/story-vibe-tutorial.gif" alt="Example of running Story-vibe.">
 </p>
 
+## Contributors ✨
+
+<!-- ALL-CONTRIBUTORS-LIST:START -->
+<!-- prettier-ignore -->
+<table>
+<tr><td align="center"><a href="https://github.com/dhajnes"><img src="https://avatars.githubusercontent.com/dhajnes" width="100px;" alt=""/><br /><sub><b>Andrej Kružliak</b></sub></a></td>
+<td align="center"><a href="https://github.com/johmag2"><img src="https://avatars.githubusercontent.com/johmag2" width="100px;" alt=""/><br /><sub><b>Johan Magnusson</b></sub></a></td>
+</tr>
+</table>
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 # Install
 1. install and activate the conda environment in `/install/conda_environment.yaml` via `conda env create -f /install/conda_environment.yaml`
 2. download the model checkpoint (including training params and optimizer weights) from my HuggingFace [here](https://huggingface.co/dhajnes/bert-story-vibe/tree/main)
