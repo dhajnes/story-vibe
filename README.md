@@ -23,7 +23,7 @@ The script is powered by `Streamlit` a front-end Python library.
 <!-- ALL-CONTRIBUTORS-LIST:START -->
 <!-- prettier-ignore -->
 <table>
-<tr><td align="center"><a href="https://github.com/dhajnes"><img src="https://avatars.githubusercontent.com/dhajnes" width="100px;" alt=""/><br /><sub><b>Andrej Kružliak</b></sub></a></td>
+<tr><td align="center"><a href="https://github.com/dhajnes"><img src="https://avatars.githubusercontent.com/akruzliak" width="100px;" alt=""/><br /><sub><b>Andrej Kružliak</b></sub></a></td>
 <td align="center"><a href="https://github.com/johmag2"><img src="https://avatars.githubusercontent.com/johmag2" width="100px;" alt=""/><br /><sub><b>Johan Magnusson</b></sub></a></td>
 </tr>
 </table>
